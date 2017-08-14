@@ -17,6 +17,10 @@ def get_names(text):
     Names = [tup[0] for tup in classified_text if tup[1] == "PERSON"]
     Names = [str(name) for name in Names]
     return Names
+def get_names_from_to(text):
+    nameList = text.split()
+    return nameList
+
 def GetPhoneNumber(text):
     match = re.search(u'''((?:(?<![\d-])(?:\+?\d{1,3}[-.\s*]?)?(?:\(?\d{3}\)?[-.\s*]?)?\d{3}[-.\s*]?\d{4}(?![\d-]))|(?:(?<![\d-])(?:(?:\(\+?\d{2}\))|(?:\+?\d{2}))\s*\d{2}\s*\d{3}\s*\d{4}(?![\d-])))''', text)
     return match.group(0)
@@ -39,8 +43,8 @@ def getResponse(myDict):
                 Subresponses['to'].append(to_mail_response)
         except AttributeError:
             pass
-        if(len(get_names(to_value)) != 0):
-            allNames = get_names(to_value)
+        if(len(get_names_from_to(to_value)) != 0):
+            allNames = get_names_from_to(to_value)
             if(len(allNames) > 1):
                 FirstName = allNames[0]
                 FirstNameStart = to_value.find(FirstName)
@@ -56,10 +60,10 @@ def getResponse(myDict):
 
             elif(len(allNames) == 1):
                 FirstName = allNames[0]
-                FirstNameStart = FirstName.find(sign_value)
+                FirstNameStart = to_value.find(FirstName)
                 FirstNameEnd = FirstNameStart + len(FirstName)
                 FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
-                Subresponses['fetcher_mail_signature'].append(FirstNameJson)
+                Subresponses['to'].append(FirstNameJson)
             
             
         
@@ -76,8 +80,8 @@ def getResponse(myDict):
                 Subresponses['from'].append(from_mail_response)
         except AttributeError:
             pass
-        if(len(get_names(from_value)) != 0):
-            allNames = get_names(from_value)
+        if(len(get_names_from_to(from_value)) != 0):
+            allNames = get_names_from_to(from_value)
             if(len(allNames) > 1):
                 FirstName = allNames[0]
                 FirstNameStart = from_value.find(FirstName)
@@ -93,10 +97,10 @@ def getResponse(myDict):
 
             elif(len(allNames) == 1):
                 FirstName = allNames[0]
-                FirstNameStart = FirstName.find(sign_value)
+                FirstNameStart = from_value.find(FirstName)
                 FirstNameEnd = FirstNameStart + len(FirstName)
                 FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
-                Subresponses['fetcher_mail_signature'].append(FirstNameJson)
+                Subresponses['from'].append(FirstNameJson)
                 
                 
     Subresponses['fetcher_mail_signature'] = []
@@ -141,6 +145,51 @@ def getResponse(myDict):
                 PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
                 PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
                 Subresponses['fetcher_mail_signature'].append(PhoneNumberJson)
+            except AttributeError:
+                pass
+            
+            
+    Subresponses['fetcher_messagebody_text'] = []
+    if("fetcher_messagebody_text" in myDict.keys()):
+        fetcher_body = { k:v for k,v in myDict.items() if 'fetcher_messagebody_text' in k }
+        body_value = fetcher_body.values()[0]
+        try:
+            if(get_mail(body_value) is not None):
+                body_mail = get_mail(body_value)
+                start_body_mail = body_value.find(body_mail)
+                end_body_value = start_body_mail + len(body_mail)
+                Sign_body_response = {"Start" : start_body_mail,"End":end_body_value,"Mail":body_mail}
+                Subresponses['fetcher_messagebody_text'].append(Sign_body_response)
+        except AttributeError:
+            pass
+        if(len(get_names(body_value)) != 0):
+            allNames = get_names(body_value)
+            if(len(allNames) > 1):
+                FirstName = allNames[0]
+                FirstNameStart = body_value.find(FirstName)
+                FirstNameEnd = FirstNameStart + len(FirstName)
+                LastName = allNames[1]
+                LastNameStart = body_value.find(LastName)
+                LastNameEnd = LastNameStart+len(LastName)
+                FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
+                LastNameJson = {"LastName":LastName,"Start":LastNameStart,"End":LastNameEnd}
+                Subresponses['fetcher_messagebody_text'].append(FirstNameJson)
+                Subresponses['fetcher_messagebody_text'].append(LastNameJson)
+
+
+            elif(len(allNames) == 1):
+                FirstName = allNames[0]
+                FirstNameStart = body_value.find(FirstName)
+                FirstNameEnd = FirstNameStart + len(FirstName)
+                FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
+                Subresponses['fetcher_messagebody_text'].append(FirstNameJson)
+           
+            try:
+                PhoneNumber = GetPhoneNumber(body_value)
+                PhoneNumberStart = body_value.find(str(PhoneNumber))
+                PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
+                PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
+                Subresponses['fetcher_messagebody_text'].append(PhoneNumberJson)
             except AttributeError:
                 pass
                 
@@ -196,9 +245,9 @@ def getResponse(myDict):
 
 MyJsonFile ={   
 
-  "to":"David Letterman ",  
-     "from":"Mark Spencer  ",  
-     "fetcher_messagebody_text":"I am working in A-Consultancysadfghjklmnb company.",    
+  "to":"David  ",  
+     "from":"Mark  ",  
+     "fetcher_messagebody_text":"I am working in A-Consultancysadfghjklmnb company. This is Mark Spencer",    
      "fetcher_mail_signature":"Regards, Mark Spencer, 400701, DvDs Online, email: mark_spencer@xmail.com ",   
      "fetcher_subject":"abhishek tiwari"
  
