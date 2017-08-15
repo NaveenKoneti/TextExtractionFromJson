@@ -1,6 +1,39 @@
 import re
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
+from nltk.util import ngrams
+
+companyProject = pd.read_csv("company-project.csv")
+
+
+allCompanyGrams = []
+for myString in companyProject['COMPANY NAME']:
+    myString = myString.lower()
+    strlen = len(myString.split())
+    grams = []
+    n = 1
+    while(n<= strlen):
+        gram = get_ngrams(myString,n)
+        grams = grams+([gram[0]])
+        n = n+1
+    grams = grams[::-1]
+    allCompanyGrams = allCompanyGrams+grams
+
+    
+    
+allProjectGrams = []
+for myString in companyProject['PROJECT NAME']:
+    myString = myString.lower()
+    strlen = len(myString.split())
+    grams = []
+    n = 1
+    while(n<= strlen):
+        gram = get_ngrams(myString,n)
+        grams = grams+([gram[0]])
+        n = n+1
+    grams = grams[::-1]
+    allProjectGrams = allProjectGrams+grams
+
 
 
 def get_mail(text):
@@ -8,8 +41,8 @@ def get_mail(text):
     return match.group(0)
 
 def get_names(text):   
-    st = StanfordNERTagger('/home/naveen/stanford-ner/english.all.3class.distsim.crf.ser.gz',
-                           '/home/naveen/stanford-ner/stanford-ner.jar',
+    st = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz',
+                           'stanford-ner.jar',
                            encoding='utf-8')
 
     tokenized_text = word_tokenize(text)
@@ -24,6 +57,10 @@ def get_names_from_to(text):
 def GetPhoneNumber(text):
     match = re.search(u'''((?:(?<![\d-])(?:\+?\d{1,3}[-.\s*]?)?(?:\(?\d{3}\)?[-.\s*]?)?\d{3}[-.\s*]?\d{4}(?![\d-]))|(?:(?<![\d-])(?:(?:\(\+?\d{2}\))|(?:\+?\d{2}))\s*\d{2}\s*\d{3}\s*\d{4}(?![\d-])))''', text)
     return match.group(0)
+
+def get_ngrams(text, n ):
+    n_grams = ngrams(word_tokenize(text), n)
+    return [ ' '.join(grams) for grams in n_grams]
 
 
 def getResponse(myDict):
@@ -192,6 +229,33 @@ def getResponse(myDict):
                 Subresponses['fetcher_messagebody_text'].append(PhoneNumberJson)
             except AttributeError:
                 pass
+            
+        body_string = body_value.lower()
+        
+        
+        companyMatch = [word for word in allCompanyGrams if word in body_string]
+        try:
+            if(companyMatch != []):
+                bestCompanyMatch = companyMatch[0]
+                companyStart = body_string.find(bestCompanyMatch)
+                companyEnd = companyStart+len(bestMatch)
+                companyJson = {'Start': companyStart,'End':companyEnd,'Company':bestCompanyMatch}
+                Subresponses['fetcher_messagebody_text'].append(companyJson)
+        except:
+            pass
+        
+       
+        projectMatch = [word for word in allProjectGrams if word in body_string]
+        try:
+            if(projectMatch != []):
+                bestProjectMatch = projectMatch[0]
+                projectStart = body_string.find(bestProjectMatch)
+                projectEnd = projectStart+len(bestProjectMatch)
+                projectJson = {'Start': projectStart,'End':projectEnd,'Project':bestProjectMatch}
+                Subresponses['fetcher_messagebody_text'].append(projectJson)
+        except:
+            pass
+        
                 
 
     
@@ -245,9 +309,9 @@ def getResponse(myDict):
 
 MyJsonFile ={   
 
-  "to":"David  ",  
-     "from":"Mark  ",  
-     "fetcher_messagebody_text":"I am working in A-Consultancysadfghjklmnb company. This is Mark Spencer",    
+  "to":"David Letterman ",  
+     "from":"Mark Spencer ",  
+     "fetcher_messagebody_text":" This is Mark Spencer. I work for Phillips in the light project",    
      "fetcher_mail_signature":"Regards, Mark Spencer, 400701, DvDs Online, email: mark_spencer@xmail.com ",   
      "fetcher_subject":"abhishek tiwari"
  
