@@ -2,39 +2,9 @@ import re
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 from nltk.util import ngrams
+import pandas as pd
 
 companyProject = pd.read_csv("company-project.csv")
-
-
-allCompanyGrams = []
-for myString in companyProject['COMPANY NAME']:
-    myString = myString.lower()
-    strlen = len(myString.split())
-    grams = []
-    n = 1
-    while(n<= strlen):
-        gram = get_ngrams(myString,n)
-        grams = grams+([gram[0]])
-        n = n+1
-    grams = grams[::-1]
-    allCompanyGrams = allCompanyGrams+grams
-
-    
-    
-allProjectGrams = []
-for myString in companyProject['PROJECT NAME']:
-    myString = myString.lower()
-    strlen = len(myString.split())
-    grams = []
-    n = 1
-    while(n<= strlen):
-        gram = get_ngrams(myString,n)
-        grams = grams+([gram[0]])
-        n = n+1
-    grams = grams[::-1]
-    allProjectGrams = allProjectGrams+grams
-
-
 
 def get_mail(text):
     match = re.search(u"([a-z0-9!#$%&'*+\/=?^_`{|.}~-]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)", text)
@@ -62,6 +32,38 @@ def get_ngrams(text, n ):
     n_grams = ngrams(word_tokenize(text), n)
     return [ ' '.join(grams) for grams in n_grams]
 
+allCompanyGrams = []
+for myString in companyProject['COMPANY NAME']:
+    myString = myString.lower()
+    strlen = len(myString.split())
+    grams = []
+    n = 1
+    while(n<= strlen):
+        gram = get_ngrams(myString,n)
+        grams = grams+([gram[0]])
+        n = n+1
+    grams = grams[::-1]
+    allCompanyGrams = allCompanyGrams+grams   
+    allCompanyGrams = list(set(allCompanyGrams))
+    allCompanyGrams.sort(lambda x,y: cmp(len(x), len(y)),reverse=True)
+
+
+    
+allProjectGrams = []
+for myString in companyProject['PROJECT NAME']:
+    myString = myString.lower()
+    strlen = len(myString.split())
+    grams = []
+    n = 1
+    while(n<= strlen):
+        gram = get_ngrams(myString,n)
+        grams = grams+([gram[0]])
+        n = n+1
+    grams = grams[::-1]
+    allProjectGrams = allProjectGrams+grams    
+    allProjectGrams = list(set(allProjectGrams))
+    allProjectGrams.sort(lambda x,y: cmp(len(x), len(y)),reverse=True)
+#print(allCompanyGrams)
 
 def getResponse(myDict):
     Subresponses = {} 
@@ -189,7 +191,10 @@ def getResponse(myDict):
     Subresponses['fetcher_messagebody_text'] = []
     if("fetcher_messagebody_text" in myDict.keys()):
         fetcher_body = { k:v for k,v in myDict.items() if 'fetcher_messagebody_text' in k }
+        
         body_value = fetcher_body.values()[0]
+        
+        #print(body_value)
         try:
             if(get_mail(body_value) is not None):
                 body_mail = get_mail(body_value)
@@ -221,25 +226,34 @@ def getResponse(myDict):
                 FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
                 Subresponses['fetcher_messagebody_text'].append(FirstNameJson)
            
-            try:
-                PhoneNumber = GetPhoneNumber(body_value)
-                PhoneNumberStart = body_value.find(str(PhoneNumber))
-                PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
-                PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
-                Subresponses['fetcher_messagebody_text'].append(PhoneNumberJson)
-            except AttributeError:
-                pass
+        try:
+            #print(body_value)
+            PhoneNumber = GetPhoneNumber(body_value)
+
+            PhoneNumberStart = body_value.find(str(PhoneNumber))
+            PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
+            PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
+            Subresponses['fetcher_messagebody_text'].append(PhoneNumberJson)
+        except AttributeError:
+            pass
             
         body_string = body_value.lower()
+        #print(body_string)
+        #print('k-org' in body_string)
         
         
         companyMatch = [word for word in allCompanyGrams if word in body_string]
+        #print(companyMatch)
         try:
             if(companyMatch != []):
                 bestCompanyMatch = companyMatch[0]
+                #print(bestCompanyMatch)
                 companyStart = body_string.find(bestCompanyMatch)
-                companyEnd = companyStart+len(bestMatch)
+                
+                companyEnd = companyStart+len(bestCompanyMatch)
                 companyJson = {'Start': companyStart,'End':companyEnd,'Company':bestCompanyMatch}
+                #print(companyJson)
+                
                 Subresponses['fetcher_messagebody_text'].append(companyJson)
         except:
             pass
@@ -304,16 +318,17 @@ def getResponse(myDict):
             except AttributeError:
                 pass
     return response
-    print response
+    #print response
 
 
-MyJsonFile ={   
-
-  "to":"David Letterman ",  
-     "from":"Mark Spencer ",  
-     "fetcher_messagebody_text":" This is Mark Spencer. I work for Phillips in the light project",    
-     "fetcher_mail_signature":"Regards, Mark Spencer, 400701, DvDs Online, email: mark_spencer@xmail.com ",   
-     "fetcher_subject":"abhishek tiwari"
+MyJsonFile ={ 
+              
+      "to":"David Letterman <david_letterman@xmail.com>",
+    "from":"Mark Spencer <info@dvdsonline.com >",
+    "fetcher_messagebody_text":"If you have any question, call us at +2348272850957 or email me personally at mark_spencer@xmail.com.",
+    "fetcher_mail_signature":"Regards, Mark Spencer,  +917039198547, DvDs Online, email: mark_spencer@xmail.com",
+    "fetcher_subject":"Order Details - DVDs Online with Pattern Recognition"
+ 
  
 }
 print(getResponse(MyJsonFile))
