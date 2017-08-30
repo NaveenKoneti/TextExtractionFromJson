@@ -52,18 +52,22 @@ for myString in companyProject['COMPANY NAME']:
 allProjectGrams = []
 for myString in companyProject['PROJECT NAME']:
     myString = myString.lower()
-    strlen = len(myString.split())
-    grams = []
-    n = 1
-    while(n<= strlen):
-        gram = get_ngrams(myString,n)
-        grams = grams+([gram[0]])
-        n = n+1
-    grams = grams[::-1]
-    allProjectGrams = allProjectGrams+grams    
-    allProjectGrams = list(set(allProjectGrams))
-    allProjectGrams.sort(lambda x,y: cmp(len(x), len(y)),reverse=True)
-#print(allCompanyGrams)
+    allProjectGrams = allProjectGrams+[myString]
+
+    
+    
+#     strlen = len(myString.split())
+#     grams = []
+#     n = 1
+#     while(n<= strlen):
+#         gram = get_ngrams(myString,n)
+#         grams = grams+([gram[0]])
+#         n = n+1
+#     grams = grams[::-1]
+#     allProjectGrams = allProjectGrams+grams    
+#     allProjectGrams = list(set(allProjectGrams))
+#     allProjectGrams.sort(lambda x,y: cmp(len(x), len(y)),reverse=True)
+
 
 def getResponse(myDict):
     Subresponses = {} 
@@ -176,17 +180,16 @@ def getResponse(myDict):
                 FirstNameEnd = FirstNameStart + len(FirstName)
                 FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
                 Subresponses['fetcher_mail_signature'].append(FirstNameJson)
-            #MaxInteger = GetIntegers(sign_value)
-            #if (len(str(MaxInteger))>=5):
-            try:
-                PhoneNumber = GetPhoneNumber(sign_value)
-                PhoneNumberStart = sign_value.find(str(PhoneNumber))
-                PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
-                PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
-                Subresponses['fetcher_mail_signature'].append(PhoneNumberJson)
-            except AttributeError:
-                pass
             
+        
+        try:
+            PhoneNumber = GetPhoneNumber(sign_value)
+            PhoneNumberStart = sign_value.find(str(PhoneNumber))
+            PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
+            PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
+            Subresponses['fetcher_mail_signature'].append(PhoneNumberJson)
+        except AttributeError:
+            pass
             
     Subresponses['fetcher_messagebody_text'] = []
     if("fetcher_messagebody_text" in myDict.keys()):
@@ -194,7 +197,7 @@ def getResponse(myDict):
         
         body_value = fetcher_body.values()[0]
         
-        #print(body_value)
+       
         try:
             if(get_mail(body_value) is not None):
                 body_mail = get_mail(body_value)
@@ -227,7 +230,7 @@ def getResponse(myDict):
                 Subresponses['fetcher_messagebody_text'].append(FirstNameJson)
            
         try:
-            #print(body_value)
+            
             PhoneNumber = GetPhoneNumber(body_value)
 
             PhoneNumberStart = body_value.find(str(PhoneNumber))
@@ -238,22 +241,17 @@ def getResponse(myDict):
             pass
             
         body_string = body_value.lower()
-        #print(body_string)
-        #print('k-org' in body_string)
+    
         
         
         companyMatch = [word for word in allCompanyGrams if word in body_string]
-        #print(companyMatch)
+        
         try:
             if(companyMatch != []):
                 bestCompanyMatch = companyMatch[0]
-                #print(bestCompanyMatch)
-                companyStart = body_string.find(bestCompanyMatch)
-                
+                companyStart = body_string.find(bestCompanyMatch)  
                 companyEnd = companyStart+len(bestCompanyMatch)
-                companyJson = {'Start': companyStart,'End':companyEnd,'Company':bestCompanyMatch}
-                #print(companyJson)
-                
+                companyJson = {'Start': companyStart,'End':companyEnd,'Company':bestCompanyMatch}      
                 Subresponses['fetcher_messagebody_text'].append(companyJson)
         except:
             pass
@@ -307,28 +305,41 @@ def getResponse(myDict):
                 FirstNameEnd = FirstNameStart + len(FirstName)
                 FirstNameJson = {"FirstName":FirstName,"Start":FirstNameStart,"End":FirstNameEnd}
                 Subresponses['fetcher_subject'].append(FirstNameJson)
-            #MaxInteger = GetIntegers(sign_value)
-            #if (len(str(MaxInteger))>=5):
-            try:
-                PhoneNumber = GetPhoneNumber(sign_value)
-                PhoneNumberStart = sign_value.find(str(PhoneNumber))
-                PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
-                PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
-                Subresponses['fetcher_subject'].append(PhoneNumberJson)
-            except AttributeError:
-                pass
+           
+        try:
+            PhoneNumber = GetPhoneNumber(sign_value)
+            PhoneNumberStart = sign_value.find(str(PhoneNumber))
+            PhoneNumberEnd = PhoneNumberStart +  len(str(PhoneNumber))
+            PhoneNumberJson = {"Phone":PhoneNumber,"Start":PhoneNumberStart,"End":PhoneNumberEnd}
+            Subresponses['fetcher_subject'].append(PhoneNumberJson)
+        except AttributeError:
+            pass
     return response
-    #print response
+    
 
 
-MyJsonFile ={ 
+MyJsonFile1 ={ 
               
       "to":"David Letterman <david_letterman@xmail.com>",
     "from":"Mark Spencer <info@dvdsonline.com >",
-    "fetcher_messagebody_text":"If you have any question, call us at +2348272850957 or email me personally at mark_spencer@xmail.com.",
-    "fetcher_mail_signature":"Regards, Mark Spencer,  +917039198547, DvDs Online, email: mark_spencer@xmail.com",
+    "fetcher_messagebody_text":"If you have any question, call us at +917039198547 or email me personally at mark_spencer@xmail.com.",
+    "fetcher_mail_signature":"Regards, Mark Spencer, +2348272850957, DvDs Online, email: mark_spencer@xmail.com",
     "fetcher_subject":"Order Details - DVDs Online with Pattern Recognition"
  
  
 }
-print(getResponse(MyJsonFile))
+
+MyJsonFile2 = { 
+              
+       "to":"David Letterman ",  
+     "from":"Mark Spencer ",  
+     "fetcher_messagebody_text":" This is Mark Spencer. I work for k-org in the light project",    
+     "fetcher_mail_signature":"Regards, Mark Spencer, 400701, DvDs Online, email: anuj.saini.mca@gmail.com ",   
+     "fetcher_subject":"abhishek tiwari"
+}
+
+
+print(getResponse(MyJsonFile1))
+print("###########################################################################")
+print("###########################################################################")
+print(getResponse(MyJsonFile2))
