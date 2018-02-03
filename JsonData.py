@@ -54,20 +54,6 @@ for myString in companyProject['PROJECT NAME']:
     myString = myString.lower()
     allProjectGrams = allProjectGrams+[myString]
 
-    
-    
-#     strlen = len(myString.split())
-#     grams = []
-#     n = 1
-#     while(n<= strlen):
-#         gram = get_ngrams(myString,n)
-#         grams = grams+([gram[0]])
-#         n = n+1
-#     grams = grams[::-1]
-#     allProjectGrams = allProjectGrams+grams    
-#     allProjectGrams = list(set(allProjectGrams))
-#     allProjectGrams.sort(lambda x,y: cmp(len(x), len(y)),reverse=True)
-
 
 def getResponse(myDict):
     Subresponses = {} 
